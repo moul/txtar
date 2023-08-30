@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 
 	"golang.org/x/tools/txtar"
 )
@@ -46,6 +47,11 @@ func main() {
 		data, err := ioutil.ReadFile(path)
 		if err != nil {
 			return err
+		}
+
+		if !utf8.Valid(data) {
+			// TODO: log skipped files
+			return nil
 		}
 
 		p := filepath.ToSlash(path)
