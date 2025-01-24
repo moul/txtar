@@ -15,6 +15,7 @@ import (
 func main() {
 	var (
 		flagStripPrefix = flag.String("strip", "", "string which remove from head of path")
+		flagListOnly    = flag.Bool("list", false, "only list matching files without creating archive")
 	)
 	flag.Parse()
 
@@ -55,6 +56,11 @@ func main() {
 		}
 
 		p := filepath.ToSlash(path)
+		if *flagListOnly {
+			fmt.Println(strings.TrimPrefix(p, *flagStripPrefix))
+			return nil
+		}
+
 		ar.Files = append(ar.Files, txtar.File{
 			Name: strings.TrimPrefix(p, *flagStripPrefix),
 			Data: data,
@@ -66,10 +72,12 @@ func main() {
 		panic(err)
 	}
 
-	if len(ar.Files) == 0 {
-		fmt.Fprintln(os.Stderr, "target directory is empty")
-		os.Exit(1)
+	if !*flagListOnly {
+		if len(ar.Files) == 0 {
+			fmt.Fprintln(os.Stderr, "target directory is empty")
+			os.Exit(1)
+		}
+		archived := string(txtar.Format(&ar))
+		fmt.Println(archived)
 	}
-	archived := string(txtar.Format(&ar))
-	fmt.Println(archived)
 }
